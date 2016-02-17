@@ -1,7 +1,7 @@
 #! usr/bin/env python
 from flask.ext.moment import Moment
 from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.script import Manager
+from flask.ext.script import Manager, Shell
 from flask.ext.bootstrap import Bootstrap
 from flask import Flask,render_template, session, redirect, url_for, flash 
 from datetime import datetime
@@ -9,6 +9,9 @@ from flask.ext.wtf import Form
 from wtforms import StringField, SubmitField
 from wtforms.validators import Required
 import os
+from flask.ext.migrate import Migrate,MigrateCommand
+from flask.ext.mail import Mail
+
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
@@ -17,12 +20,24 @@ app.config['SQLALCHEMY_DATABASE_URI']=\
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN']= True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['SECRET_KEY'] = 'hard to guess string'
+app.config['MAIL_SERVER'] = 'localhost.localdomain'
+app.config['MAIL_PORT'] = 25
 
+app.config['MAIL_USERNAME']=os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD']=os.environ.get('MAIL_PASSWORD')
 db = SQLAlchemy(app)
 
 manager = Manager(app)
 bootstrap = Bootstrap(app)
 moment = Moment(app)
+migrate = Migrate(app, db)
+manager.add_command('db',MigrateCommand)
+mail = Mail(app)
+
+
+def make_shell_context():
+    return dict(app=app, db=db, User=User, Role=Role)
+manager.add_command("shell", Shell(make_context=make_shell_context))
 
 class Role(db.Model):
     __tablename__='roles'
