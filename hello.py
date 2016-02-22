@@ -11,6 +11,8 @@ from wtforms.validators import Required
 import os
 from flask.ext.migrate import Migrate,MigrateCommand
 from flask.ext.mail import Mail
+from flask.ext.mail import Message
+
 
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -20,11 +22,12 @@ app.config['SQLALCHEMY_DATABASE_URI']=\
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN']= True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['SECRET_KEY'] = 'hard to guess string'
-app.config['MAIL_SERVER'] = 'localhost.localdomain'
-app.config['MAIL_PORT'] = 25
-
-app.config['MAIL_USERNAME']=os.environ.get('MAIL_USERNAME')
-app.config['MAIL_PASSWORD']=os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_SERVER'] = 'hyperion.com'
+app.config['MAIL_PORT'] = '25'
+app.config['FLASK_MAIL_SENDER']='hyperion@hyperion.com'
+#app.config['MAIL_USERNAME']=
+#app.config['MAIL_PASSWORD']=
+app.config['FLASK_ADMIN'] = 'hyperion@hyperion.com'
 db = SQLAlchemy(app)
 
 manager = Manager(app)
@@ -34,7 +37,14 @@ migrate = Migrate(app, db)
 manager.add_command('db',MigrateCommand)
 mail = Mail(app)
 
+def send_email(to, subject, template, **kwargs):
+    msg=Message(subject, sender=app.config['FLASK_MAIL_SENDER'],recipients=[to])
+    msg.body = render_template(template + '.txt', **kwargs)
+    msg.body = render_template(template + '.html', **kwargs)
+    mail.send(msg)
 
+
+    
 def make_shell_context():
     return dict(app=app, db=db, User=User, Role=Role)
 manager.add_command("shell", Shell(make_context=make_shell_context))
@@ -80,6 +90,8 @@ def index():
             user = User(username = form.name.data)
             db.session.add(user)
             session['known'] = False
+            if app.config['FLASK_ADMIN']:
+                send_mail(app.config['FLASK_ADMIN '], 'New User','mail/new_                         user',user=user)
         else:
             session['known'] =True
         session['name'] = form.name.data
