@@ -1,0 +1,14 @@
+<html>
+<body>
+<div>
+Hello, {% if name %}{{name}}{% else %}Stranger{% endif %}!
+</div>
+<form method='POST'>
+      {{form.name.label}}:{{form.name}}
+      <br/>
+    
+      <textarea name="body" placeholder="Body">      {{ request.form.body }}</textarea>
+      {{form.submit()}}
+    </form>
+</body
+</html>
