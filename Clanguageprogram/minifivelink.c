@@ -14,7 +14,7 @@ const int ConverTo25[9]={
 
 int GetNumForDir(int startSq, const int dir, const int *board, const int us){
 	int found=0;
-	while (board[startSq]){
+	while (board[startSq]!=BORDER){
 		if(board[startSq] !=us){
 			break;
 		}
@@ -32,7 +32,8 @@ int FindThreeInARow(const int *board, const int ourindex, const int us){
 
 	for (DirIndex = 0; DirIndex<4; ++DirIndex){
 		Dir = directions[DirIndex];                                                  //get one direction in four directions in one loop
-		threeCount+=GetNumForDir(ourindex+Dir,Dir, board,us);                       //positive direction call getnumfor dir 
+		threeCount+=GetNumForDir(ourindex+Dir,Dir, board,us);                       //positive direction call getnumfor dir ourindex+dir \
+		                                                                                is the next elment.
 		threeCount+=GetNumForDir(ourindex+Dir*-1,Dir*-1,board,us);                  //call function by negitive direction.
 		if (threeCount ==3){
             break;
@@ -87,17 +88,50 @@ void MakeMove(int *board, const int sq, const side){
 	board[sq]=side;
 }
 
+int GetWinningMove(int *board,const int side) {
+	
+	int ourMove=-1;
+	int winFound =0;
+	int index=0;
+
+	for (index=0; index<9; ++index) {
+		if ( board[ConverTo25[index]]==EMPTY){
+			ourMove=ConverTo25[index];
+			board[ourMove]=side;                                       //find a available move and take to the FindThreeInARow fuction.
+
+			if (FindThreeInARow(board,ourMove, side)==3){
+				winFound =1;
+			}
+			board[ourMove]=EMPTY;                                    //rewrite to empty.
+			if (winFound==1) {
+				break;
+			}
+			ourMove=-1;
+		}
+	}
+	return ourMove;
+}
+
 /*computermove when the square is empty then input the number*/
-int GetComputerMove(const int *board) {
+int GetComputerMove(int *board,const int side) {                     //take two agruments
 	int index=0;
 	int numFree=0;
 	int availableMoves[9];
 	int randMove = 0;
 
+	randMove=GetWinningMove(board,side);                                   //call the getwinningmove function.
+	if(randMove !=-1){
+		return randMove;
+	}
+
+	randMove=0;
 	for (index=0; index < 9; ++index){
 		if ( board[ConverTo25[index]]==EMPTY){
 			availableMoves[numFree++] = ConverTo25[index]; //first assain 0
 		}
+	//InitialiseBoard(&board[0]);              /*call the initialise board*/
+	//PrintBoard(&board[0]);                   /*call the printboard*/
+
 	}
 
 	randMove = (rand() % numFree);                          //rand move generate 0~numfree.
@@ -166,7 +200,7 @@ void RunGame(){
 			MakeMove(&board[0],LastMoveMade,Side);
 			Side=CROSSES;
 		}else{
-			LastMoveMade=GetComputerMove(&board[0]);
+			LastMoveMade=GetComputerMove(&board[0],Side);
 			MakeMove(&board[0],LastMoveMade,Side);
 			Side=NOUGHTS;
 			PrintBoard(&board[0]);            /*reprint the board by new va\
