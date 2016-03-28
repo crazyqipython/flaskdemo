@@ -3,13 +3,44 @@
 #include<string.h>
 
 enum{NOUGHTS,CROSSES,BORDER,EMPTY};
-enum{HUMANWIN,COMPWIN,DRAW};
+//enum{HUMANWIN,COMPWIN,DRAW};
 
+const int directions[4]={1,5,4,6};       //four directions condition.
 const int ConverTo25[9]={
 	6, 7,8,
 	11,12,13,
 	16,17,18,
 };                                         /*use the array to convert the*/ 
+
+int GetNumForDir(int startSq, const int dir, const int *board, const int us){
+	int found=0;
+	while (board[startSq]){
+		if(board[startSq] !=us){
+			break;
+		}
+		found++;
+		startSq+=dir;
+	}
+	return found;
+}
+ 
+int FindThreeInARow(const int *board, const int ourindex, const int us){
+
+	int DirIndex =0;
+	int Dir=0;
+	int threeCount =1;                                                               //itself is one.
+
+	for (DirIndex = 0; DirIndex<4; ++DirIndex){
+		Dir = directions[DirIndex];                                                  //get one direction in four directions in one loop
+		threeCount+=GetNumForDir(ourindex+Dir,Dir, board,us);                       //positive direction call getnumfor dir 
+		threeCount+=GetNumForDir(ourindex+Dir*-1,Dir*-1,board,us);                  //call function by negitive direction.
+		if (threeCount ==3){
+            break;
+		}
+		threeCount=1;
+	}
+	return threeCount;
+}
 
 /*initial the 5*5 board*/
 void InitialiseBoard(int *board){
@@ -140,6 +171,17 @@ void RunGame(){
 			Side=NOUGHTS;
 			PrintBoard(&board[0]);            /*reprint the board by new va\
 											   lue*/
+		}
+		
+		//if three in a row  game is over
+		if (FindThreeInARow(board,LastMoveMade,Side^1)==3){
+			printf("Game over!");
+			GameOver=1;
+			if (Side==NOUGHTS) {
+				printf("Computer Win\n");
+			}else{
+				printf("Human Wins\n");
+			}
 		}
 		if(!HasEmpty(board)) {
 			printf("Game over!\n");
