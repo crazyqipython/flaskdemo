@@ -9,7 +9,8 @@ const int ConverTo25[9]={
 	6, 7,8,
 	11,12,13,
 	16,17,18,
-};                                         /*use the array to convert the 5\                                             5 array to 3*3 array*/
+};                                         /*use the array to convert the*/ 
+
 /*initial the 5*5 board*/
 void InitialiseBoard(int *board){
        int index;
@@ -55,6 +56,23 @@ void MakeMove(int *board, const int sq, const side){
 	board[sq]=side;
 }
 
+/*computermove when the square is empty then input the number*/
+int GetComputerMove(const int *board) {
+	int index=0;
+	int numFree=0;
+	int availableMoves[9];
+	int randMove = 0;
+
+	for (index=0; index < 9; ++index){
+		if ( board[ConverTo25[index]]==EMPTY){
+			availableMoves[numFree++] = ConverTo25[index]; //first assain 0
+		}
+	}
+
+	randMove = (rand() % numFree);                          //rand move generate 0~numfree.
+	return availableMoves[randMove];             
+}
+
 int GetHumanMove(const int *board) {
 
 	char userInput[4];                      /*define a four lenth char arr\
@@ -92,10 +110,10 @@ int GetHumanMove(const int *board) {
 			move=-1;
 			printf("Square not available\n");
 			continue;
-		}
+		}                                   //if the board is empty
 		moveOk=1;
 	}
-	printf("Making move...%d\nc",(move+1));
+	printf("Making move...%d\n",(move+1));
 	return ConverTo25[move];
 }
 
@@ -113,14 +131,21 @@ void RunGame(){
 	while(!GameOver){                        /*make move side by side unti\
 											   the gameover*/
 		if(Side==NOUGHTS){
-			GetHumanMove(&board[0]);
-            PrintBoard(&board[0]);
+			LastMoveMade = GetHumanMove(&board[0]);
+			MakeMove(&board[0],LastMoveMade,Side);
+			Side=CROSSES;
 		}else{
-			// get move from computer, make move on board,change side
+			LastMoveMade=GetComputerMove(&board[0]);
+			MakeMove(&board[0],LastMoveMade,Side);
+			Side=NOUGHTS;
 			PrintBoard(&board[0]);            /*reprint the board by new va\
 											   lue*/
 		}
-        GameOver =1;                          /*loop end*/     
+		if(!HasEmpty(board)) {
+			printf("Game over!\n");
+			GameOver=1;
+			printf("It's a draw\n");
+		}
 	}
 }
 
