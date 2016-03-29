@@ -5,7 +5,9 @@
 enum{NOUGHTS,CROSSES,BORDER,EMPTY};
 //enum{HUMANWIN,COMPWIN,DRAW};
 
-const int directions[4]={1,5,4,6};       //four directions condition.
+const int InMiddle=4;                     //Getnextbest function use.
+const int Corners[4] = {0,2,6,8};
+const int Directions[4]={1,5,4,6};       //four directions condition.
 const int ConverTo25[9]={
 	6, 7,8,
 	11,12,13,
@@ -31,7 +33,7 @@ int FindThreeInARow(const int *board, const int ourindex, const int us){
 	int threeCount =1;                                                               //itself is one.
 
 	for (DirIndex = 0; DirIndex<4; ++DirIndex){
-		Dir = directions[DirIndex];                                                  //get one direction in four directions in one loop
+		Dir = Directions[DirIndex];                                                  //get one direction in four directions in one loop
 		threeCount+=GetNumForDir(ourindex+Dir,Dir, board,us);                       //positive direction call getnumfor dir ourindex+dir \
 		                                                                                is the next elment.
 		threeCount+=GetNumForDir(ourindex+Dir*-1,Dir*-1,board,us);                  //call function by negitive direction.
@@ -88,6 +90,24 @@ void MakeMove(int *board, const int sq, const side){
 	board[sq]=side;
 }
 
+int GetNextBest(const int *board){
+
+	int ourMove=ConverTo25[InMiddle];
+	if (board[ourMove]==EMPTY) {
+		return ourMove;
+	}
+	int index=0;
+	ourMove=-1;
+
+	for (index=0; index<4; index++){
+		ourMove=ConverTo25[Corners[index]];
+		if(board[ourMove] == EMPTY)
+			break;
+		ourMove = -1;
+	}
+	return ourMove;
+}
+
 int GetWinningMove(int *board,const int side) {
 	
 	int ourMove=-1;
@@ -121,6 +141,17 @@ int GetComputerMove(int *board,const int side) {                     //take two 
 
 	randMove=GetWinningMove(board,side);                                   //call the getwinningmove function.
 	if(randMove !=-1){
+		return randMove;
+	}
+
+	randMove = GetWinningMove(board,side^1);          //block human winning\
+			                                            move
+	if(randMove!=-1){
+		return randMove;
+	}
+
+	randMove=GetNextBest(board);
+	if(randMove!=-1){
 		return randMove;
 	}
 
